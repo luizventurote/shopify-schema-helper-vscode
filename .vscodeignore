@@ -1,0 +1,27 @@
+# Source files
+src/**
+.vscode/**
+tsconfig.json
+
+# Examples and documentation that shouldn't be in the published extension
+examples/**
+DEVELOPMENT_NOTES.md
+CLICK_TO_NAVIGATE.md
+ERROR_HANDLING.md
+GETTING_STARTED.md
+PROJECT_STATUS.md
+VALIDATION_NAVIGATION.md
+
+# Build and development files
+*.vsix
+.gitignore
+.git/**
+node_modules/**
+.DS_Store
+
+# Only include essential files for the published extension:
+# - out/** (compiled code)
+# - package.json 
+# - README.md
+# - CHANGELOG.md
+# - LICENSE 

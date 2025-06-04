@@ -3,20 +3,44 @@
   "displayName": "Shopify Schema Helper",
   "description": "Visualize Shopify section and block schemas with ease",
   "version": "0.1.0",
+  "publisher": "luizventurote",
+  "icon": "media/shopify-schema-helper-logo.png",
+  "author": {
+    "name": "Luiz Venturote"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/luizventurote/shopify-schema-helper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/luizventurote/shopify-schema-helper/issues"
+  },
+  "homepage": "https://github.com/luizventurote/shopify-schema-helper#readme",
   "engines": {
     "vscode": "^1.74.0"
   },
   "categories": [
     "Other",
-    "Visualization"
+    "Visualization",
+    "Linters"
   ],
   "keywords": [
     "shopify",
     "liquid",
     "schema",
     "json",
-    "visualization"
+    "visualization",
+    "validation",
+    "ecommerce",
+    "theme",
+    "sections",
+    "blocks"
   ],
+  "galleryBanner": {
+    "color": "#96bf48",
+    "theme": "dark"
+  },
   "activationEvents": [
     "onLanguage:liquid"
   ],

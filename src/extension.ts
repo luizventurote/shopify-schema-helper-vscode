@@ -338,13 +338,8 @@ export function activate(context: vscode.ExtensionContext) {
     const hasShownWelcome = context.globalState.get('hasShownWelcome', false);
     if (!hasShownWelcome) {
         vscode.window.showInformationMessage(
-            'Welcome to Shopify Schema Helper! Open a .liquid file with a schema to get started.',
-            'Open Example'
-        ).then(selection => {
-            if (selection === 'Open Example') {
-                vscode.commands.executeCommand('vscode.open', vscode.Uri.joinPath(context.extensionUri, 'examples', 'sample-section.liquid'));
-            }
-        });
+            'Welcome to Shopify Schema Helper! Open a .liquid file with a schema to get started.'
+        );
         context.globalState.update('hasShownWelcome', true);
     }
 }

@@ -1,6 +1,6 @@
 # 🛠️ Shopify Schema Helper
 
-A powerful VS Code extension that helps you visualize, validate, and create Shopify section and theme block schemas with ease.
+A powerful VS Code extension that makes it easy to visualize and validate Shopify section and theme block schemas.
 
 ## ✨ Features
 
@@ -12,53 +12,13 @@ A powerful VS Code extension that helps you visualize, validate, and create Shop
 
 ### ✅ **Advanced Schema Validation**
 - Real-time validation with detailed error messages
-- Smart validation for @app and @theme dynamic blocks
 - Click-to-navigate validation errors to source code
 - Comprehensive checks for Shopify schema best practices
 
 ### 🎯 **Click-to-Navigate**
 - Click any tree item to jump to the corresponding source line
-- Surgical precision error navigation
-- Smart line mapping for all schema elements
-
-<!-- 
-### 🎛️ **Visual Schema Builder** (Coming Soon)
-- Drag-and-drop schema creation
-- Form-based setting configuration  
-- Live preview with instant validation
-- Export to standard Shopify liquid format
--->
-
-## 🗂️ **Supported File Types**
-
-### **Sections** (`/sections` folder)
-- Section schema files that define page sections
-- Support for all section-specific features like `enabled_on`, `disabled_on`
-- Block definitions and limits
-
-### **Theme Blocks** (`/blocks` folder)  
-- Reusable block components as described in [Shopify's theme blocks documentation](https://shopify.dev/docs/storefronts/themes/architecture/blocks)
-- Same schema structure as sections but stored in `/blocks` folder
-- Can be used across multiple sections
-- Support for nested blocks and settings
-
-## 📋 **Supported Schema Elements**
-
-### **Settings Types**
-- **Text Inputs**: `text`, `textarea`, `richtext`, `html`, `liquid`
-- **Numeric**: `number`, `range`  
-- **Selection**: `checkbox`, `select`, `radio`
-- **Media**: `image_picker`, `video`, `video_url`
-- **Resources**: `collection`, `product`, `blog`, `page`, `article`, `link_list`
-- **Other**: `color`, `font_picker`, `url`
-- **UI Elements**: `header`, `paragraph`
-
-### **Advanced Features**
-- **Blocks**: Nested block definitions with their own settings
-- **Presets**: Default configurations with settings and blocks
-- **Limits**: `max_blocks`, `min_blocks`, section limits
-- **Constraints**: `enabled_on`, `disabled_on` templates and groups
-- **Conditional Visibility**: `visible_if` property with Liquid code for dynamic field display
+- Error navigation
+- Smart line mapping for schema elements
 
 ## 🚀 **Getting Started**
 
@@ -67,38 +27,7 @@ A powerful VS Code extension that helps you visualize, validate, and create Shop
 3. **Open any `.liquid` file** with a schema (section or theme block)
 4. **Look for the "Shopify Schema" panel** in the Explorer sidebar
 
-### **Example Files Included**
-The extension comes with example files to help you get started:
-
-#### **Sections** (`examples/sections/`)
-- `sample-section.liquid` - Complex section with all setting types
-- `validation-test.liquid` - File with intentional errors for testing
-- `conditional-section.liquid` - Demonstrates `visible_if` conditional visibility
-
-#### **Theme Blocks** (`examples/blocks/`)
-- `button.liquid` - Simple button block with text, URL, and style options  
-- `image-text.liquid` - Image and text combination block with headers
-
 ## 🎯 **Usage**
-
-### **Tree View Navigation**
-```
-SHOPIFY SCHEMA
-├── 🔍 Validation: All good ✓
-└── 📄 Conditional Section (Section • 9 settings)
-    ├── 📝 Type: Section
-    ├── ⚙️ Settings (9)
-    │   ├── 📝 Basic Settings
-    │   ├── ☑️ Show Heading ▼
-    │   ├── 📝 Heading Text (Conditional) ▼
-    │   │   ├── 🔑 ID: heading_text
-    │   │   ├── 📋 Type: text
-    │   │   ├── 💡 Default: "Welcome to Our Store"
-    │   │   └── 👁️ Visible If: {{ section.settings.show_heading == true }}
-    │   ├── 🎨 Heading Color (Conditional) ▼
-    │   └── ...
-    └── 📦 Presets (1)
-```
 
 ### **Available Commands**
 - **Validate Schema** - Check current schema for errors and warnings

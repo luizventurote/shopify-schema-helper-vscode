@@ -1,96 +1,49 @@
 # Changelog
 
-All notable changes to the Shopify Schema Helper extension will be documented in this file.
+## [0.1.0] - 2024-01-15
 
-## [0.1.0] - Initial Release
+### ✨ Initial Release
 
-### ✨ New Features
+#### 🔍 **Real-time Schema Visualization**
+- Tree view of your schema structure with collapsible sections
+- Instant parsing of Shopify section and block schemas  
+- Visual representation of settings, blocks, and presets
+- Support for both section schemas (`/sections`) and theme block schemas (`/blocks`)
+- Automatic file type detection and appropriate icon display
 
-#### Phase 1: Schema Visualization
-- **Schema Detection**: Automatically detects and parses `{% schema %}` blocks in `.liquid` files
-- **File Type Recognition**: Distinguishes between sections (`/sections`) and theme blocks (`/blocks`)
-- **Tree View Visualization**: Beautiful sidebar panel showing schema structure with collapsible sections
-- **Setting Type Recognition**: Visual icons for all Shopify setting types (text, number, color, etc.)
-- **Block Support**: Displays blocks and their nested settings
-- **Preset Information**: Shows configured presets with counts
-- **Constraints Display**: Shows limits like max_blocks, min_blocks, and section limits
-- **Conditional Visibility**: Full support for `visible_if` property with Liquid code validation
-- **Real-time Updates**: Updates automatically as you edit liquid files with debounced changes
+#### ✅ **Advanced Schema Validation**
+- Real-time validation with detailed error messages and warnings
+- Smart validation for `@app` and `@theme` dynamic blocks
+- Comprehensive checks for Shopify schema best practices
+- Type-specific validation (range checks, required options, etc.)
+- Special handling for `header` and `paragraph` setting types
+- Intelligent preset block validation with dynamic block support
 
-#### Schema Validation
-- **Comprehensive Validation**: Checks for common schema errors and best practices
-- **Error Detection**: Identifies required fields, duplicate IDs, invalid types, and structural issues
-- **Warning System**: Provides helpful suggestions for improvements
-- **Visual Indicators**: Shows validation status with error/warning icons in the tree view
-- **Detailed Messages**: Contextual error messages with suggestions for fixes
+#### 🎯 **Click-to-Navigate**
+- Click any tree item to jump to the corresponding source line
+- Surgical precision error navigation with character-level accuracy
+- Smart line mapping for all schema elements including validation errors
+- Automatic scrolling and highlighting of target lines
 
-#### Commands & Actions
-- **Refresh Schema**: Manual refresh of schema visualization
-- **Validate Schema**: Explicit validation with detailed feedback
-- **Export Schema**: Export parsed schema as clean JSON
-- **Context Menus**: Right-click actions in liquid files
-- **Command Palette**: Access all features via command palette
+#### 🛠️ **Developer Experience**
+- Seamless VS Code integration with native tree view
+- Real-time updates as you edit files (debounced for performance)
+- Command palette integration for all features
+- Context menu options for `.liquid` files
+- Export schema as clean JSON functionality
 
-#### Phase 2 Foundation: Visual Schema Builder
-- **Webview Panel**: Modern, VS Code-themed interface for schema building
-- **Basic Info Editor**: Edit section name, tag, and CSS class
-- **Tabbed Interface**: Organized sections for different schema components
-- **Live Preview**: Real-time JSON preview of schema changes
-- **Export Functionality**: Generate liquid schema blocks from visual builder
+#### 📋 **Comprehensive Schema Support**
+- **All Setting Types**: text, textarea, number, range, checkbox, select, radio, color, font_picker, collection, product, blog, page, article, link_list, url, richtext, html, liquid, image_picker, video, video_url, header, paragraph
+- **Advanced Features**: blocks, presets, limits, conditional visibility (`visible_if`)
+- **Modern Shopify Features**: `@app` and `@theme` dynamic blocks
+- **Best Practice Validation**: naming conventions, duplicate detection, performance warnings
 
-### 🛠️ Technical Features
-- **TypeScript**: Fully typed codebase for better maintainability
-- **Error Handling**: Robust error handling and user feedback
-- **Performance**: Debounced updates and efficient parsing
-- **Extensibility**: Modular architecture for easy feature additions
-
-### 📝 Documentation
-- **Comprehensive README**: Detailed usage instructions and feature overview
-- **Getting Started Guide**: Step-by-step setup and usage guide
-- **Code Examples**: Sample liquid files with complex schemas
-- **Type Definitions**: Complete TypeScript interfaces for all schema elements
-
-### 🔧 Developer Experience
-- **Development Setup**: Complete VS Code debugging configuration
-- **Build System**: TypeScript compilation with watch mode
-- **Testing Files**: Sample schemas including validation test cases
-- **Extension Host**: Proper VS Code extension development workflow
-
-### 📋 Supported Schema Elements
-
-#### Settings Types
-- `text`, `textarea` - Text inputs
-- `number`, `range` - Numeric inputs
-- `checkbox` - Boolean toggles
-- `select`, `radio` - Choice inputs
-- `color` - Color picker
-- `font_picker` - Font selection
-- `collection`, `product`, `blog`, `page`, `article` - Resource pickers
-- `link_list` - Navigation menu picker
-- `url` - URL input
-- `richtext`, `html`, `liquid` - Content editors
-- `image_picker`, `video`, `video_url` - Media inputs
-- `header`, `paragraph` - UI elements
-
-#### Block Features
-- Block type and name display
-- Nested block settings
-- Block limits and constraints
-- Setting counts and summaries
-
-#### Preset Features
-- Preset name and configuration
-- Settings and blocks counts
-- Reference validation
-
-#### Validation Rules
-- Required field validation
-- Duplicate ID detection
-- Setting type validation
-- Range and option validation
-- Block and preset reference checking
-- Naming convention suggestions
-- Performance warnings
+### 🎨 **UI/UX Highlights**
+- Beautiful tree view with semantic icons for different element types
+- Clear visual distinction between sections and theme blocks
+- Expandable/collapsible sections for better organization
+- Validation status indicators with color coding
+- Professional integration with VS Code themes
 
 ### 🎯 What's Coming Next
 
