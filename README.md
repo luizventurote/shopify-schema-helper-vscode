@@ -2,7 +2,7 @@
 
 A powerful VS Code extension that makes it easy to visualize and validate Shopify section and theme block schemas.
 
-![Shopify Schema Helper Demo](media/demo.png)
+<img src="media/demo.gif" alt="Shopify Schema Helper Demo" width="400" height="auto">
 
 ## ✨ Features
 
