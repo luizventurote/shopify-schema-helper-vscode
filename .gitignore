@@ -1,0 +1,54 @@
+# Examples directory - test files for development only
+examples/
+
+# Compiled output
+out/
+*.vsix
+
+# Node modules
+node_modules/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# VS Code settings (optional - keep if you want to share workspace settings)
+.vscode/settings.json
+.vscode/launch.json
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Environment variables
+.env 
