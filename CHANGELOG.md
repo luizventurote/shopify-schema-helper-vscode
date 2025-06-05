@@ -1,6 +1,142 @@
 # Changelog
 
-## [0.1.6] - 2024-01-17
+All notable changes to the Shopify Schema Helper extension will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.2.0] - 2024-12-XX
+
+### 🎉 Major Feature Release
+
+### Added
+- **Complete Shopify Setting Type Support** - Added support for all official Shopify setting types:
+  - `metaobject` - Select metaobject entries with required `metaobject_type` property
+  - `collection_list` - Multi-select collections with configurable limit (1-50)
+  - `product_list` - Multi-select products with configurable limit (1-50)
+  - `metaobject_list` - Multi-select metaobject entries
+  - `text_alignment` - Visual alignment selector (left, center, right)
+  - `color_background` - Advanced color/gradient picker
+  - `color_scheme`, `color_scheme_group` - Theme color scheme selectors
+  - `inline_richtext` - Inline rich text formatting
+  - Full support for all basic and specialized input types from Shopify documentation
+
+- **Enhanced Type-Specific Validation**:
+  - `metaobject` settings require `metaobject_type` property validation
+  - `collection_list`/`product_list` validate limit ranges (1-50) according to Shopify limits
+  - `text_alignment` validates alignment values (left, center, right only)
+  - `video_url` validates accepted providers (youtube, vimeo only)
+  - `range` settings require both min/max properties and validate step values
+  - Comprehensive error messages with specific suggestions for each setting type
+
+- **Advanced Setting Details Display**:
+  - Type-specific attributes shown in tree view (metaobject_type, limit, min/max, step, unit, accept)
+  - Enhanced setting descriptions with inline attribute preview
+  - Expandable options display for select/radio settings
+  - Smart placeholder and default value presentation
+
+- **Flexible Interface Options**:
+  - Extension now has its own dedicated icon in the VS Code sidebar
+  - Also available in the Explorer panel for traditional workflow
+  - Users can choose their preferred interface location
+  - Both views share the same functionality and sync automatically
+
+### Fixed
+- **Accurate Line Navigation** - Fixed critical off-by-one error in JSON issue line number reporting
+  - Line numbers now precisely match the actual issue location
+  - Clicking JSON issues navigates to the exact problematic line
+  - Consistent line number calculation across all navigation features
+- **Reduced False Positive Warnings** - Improved unescaped quote detection to avoid flagging valid Liquid template syntax
+  - No longer flags valid Liquid template strings like `{{ block.settings.field }}`
+  - More precise detection of actual JSON syntax issues
+
+### Changed
+- **Added dual interface placement** - Extension now available in both dedicated sidebar AND Explorer panel
+- Updated validation engine to recognize all new setting types (no more "Unknown setting type" errors)
+- Enhanced setting type icon mapping for better visual distinction
+- Improved error messages and suggestions for better developer experience
+
+## [0.1.7] - 2024-12-XX
+
+### Added
+- **Robust JSON Parsing** - Revolutionary error handling that transforms the extension from brittle to resilient:
+  - Auto-fix for common JSON syntax errors (trailing commas, missing commas)
+  - Graceful error recovery that shows warnings instead of complete failures
+  - Detailed issue reporting with line numbers and fix suggestions
+  - Smart recovery attempts to parse schema even with syntax errors
+  - Built-in "Common JSON Fixes" guide with practical examples
+
+- **JSON Issues Section** in tree view showing:
+  - Auto-fixed issues with ✅ indicators
+  - Manual-fix-needed issues with ⚠️ warnings
+  - Click-to-navigate to problematic lines
+  - Specific suggestions for each issue type
+
+### Changed
+- Enhanced error handling philosophy: Show warnings, don't break the experience
+- Improved developer productivity by allowing schema visualization even with minor syntax issues
+
+## [0.1.6] - 2024-12-XX
+
+### Added
+- **Shopify Translation Support**:
+  - Automatic translation loading from `locales/en.default.schema.json`
+  - Real-time updates when locales file changes
+  - Smart fallbacks for missing translations
+  - Support for `t:` translation keys
+  - Live translation of setting labels, block names, section names, and option values
+
+### Fixed
+- Translation key resolution and fallback handling
+- Locales file parsing and error handling
+
+## [0.1.5] - 2024-12-XX
+
+### Added
+- Enhanced validation system with comprehensive schema checks
+- Real-time validation with detailed error messages
+- Click-to-navigate validation errors
+- Support for @app and @theme blocks
+- Improved block validation and duplicate detection
+
+## [0.1.4] - 2024-12-XX
+
+### Added
+- Section and theme block distinction
+- Enhanced tree view with better categorization
+- File type detection and display
+- Improved preset validation
+
+## [0.1.3] - 2024-12-XX
+
+### Added
+- Advanced schema validation engine
+- Setting type validation
+- Block structure validation
+- Preset configuration validation
+
+## [0.1.2] - 2024-12-XX
+
+### Added
+- Real-time schema visualization
+- Tree view data provider
+- Setting, block, and preset display
+- Basic click-to-navigate functionality
+
+## [0.1.1] - 2024-12-XX
+
+### Added
+- Enhanced schema parsing
+- Basic validation
+- Tree view improvements
+
+## [0.1.0] - 2024-12-XX
+
+### Added
+- Initial release
+- Basic Shopify schema parsing
+- Tree view visualization
+- Core extension structure
 
 ### 🔧 **Improvements**
 - **Enhanced Block Fallback**: When a block doesn't have a name or translation, now displays the block type (e.g., "image", "text", "video") instead of generic "Unnamed Block"

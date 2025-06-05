@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { SchemaParser, ShopifySchema, Setting, Block, Preset, Option } from './schemaParser';
+import { SchemaParser, ShopifySchema, Setting, Block, Preset, Option, ParseResult, JsonIssue } from './schemaParser';
 import { SchemaValidator, ValidationResult } from './schemaValidator';
 import { TranslationManager } from './translationManager';
 
@@ -19,7 +19,7 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
     private currentDocument: vscode.TextDocument | null = null;
     private validationResult: ValidationResult | null = null;
     private schemaValidator: SchemaValidator;
-    private parsingError: JsonParsingError | null = null;
+    private parseResult: ParseResult | null = null;
     private schemaLineMap: Map<string, number> = new Map(); // Track line numbers for schema elements
 
     constructor(private schemaParser: SchemaParser, private translationManager: TranslationManager) {
@@ -35,27 +35,55 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
 
     updateSchema(document: vscode.TextDocument): void {
         this.currentDocument = document;
-        this.parsingError = null;
         this.schemaLineMap.clear();
         
-        try {
-            this.currentSchema = this.schemaParser.parseDocument(document);
-            
-            // Build line map for navigation
-            if (this.currentSchema) {
-                this.buildSchemaLineMap(document);
-                this.validationResult = this.schemaValidator.validateSchema(this.currentSchema);
-            } else {
-                this.validationResult = null;
-            }
-        } catch (error) {
-            // Handle JSON parsing error
-            this.currentSchema = null;
+        // Parse the document with the new robust parser
+        this.parseResult = this.schemaParser.parseDocument(document);
+        this.currentSchema = this.parseResult.schema;
+        
+        // Convert JSON issue line numbers to absolute document line numbers
+        if (this.parseResult && this.parseResult.issues.length > 0) {
+            this.convertJsonIssueLineNumbers(document);
+        }
+        
+        // Build line map for navigation if we have a schema
+        if (this.currentSchema) {
+            this.buildSchemaLineMap(document);
+            this.validationResult = this.schemaValidator.validateSchema(this.currentSchema);
+        } else {
             this.validationResult = null;
-            this.parsingError = this.analyzeJsonError(document, error);
         }
         
         this._onDidChangeTreeData.fire();
+    }
+
+    /**
+     * Convert JSON issue line numbers from schema-relative to document-absolute
+     */
+    private convertJsonIssueLineNumbers(document: vscode.TextDocument): void {
+        if (!this.parseResult || this.parseResult.issues.length === 0) {
+            return;
+        }
+
+        const text = document.getText();
+        const schemaMatch = text.match(/{%\s*schema\s*%}([\s\S]*?){%\s*endschema\s*%}/i);
+        
+        if (!schemaMatch) {
+            return;
+        }
+
+        // Find the start of the schema content (after {% schema %})
+        const schemaBlockStart = text.indexOf(schemaMatch[0]);
+        const schemaContentStart = schemaBlockStart + schemaMatch[0].indexOf(schemaMatch[1]);
+        const schemaStartPosition = document.positionAt(schemaContentStart);
+        
+        // Update each issue's line number to be absolute in the document
+        this.parseResult.issues.forEach(issue => {
+            // issue.line is 1-based relative to schema content (line 1, 2, 3...)
+            // schemaStartPosition.line is 0-based relative to document  
+            // Convert to 1-based document line number
+            issue.line = schemaStartPosition.line + issue.line + 1;
+        });
     }
 
     private buildSchemaLineMap(document: vscode.TextDocument): void {
@@ -213,104 +241,26 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
         return currentIndex >= presetsStart && (presetsEnd === -1 || currentIndex <= presetsEnd);
     }
 
-    private analyzeJsonError(document: vscode.TextDocument, error: any): JsonParsingError {
-        const text = document.getText();
-        const schemaMatch = text.match(/{%\s*schema\s*%}([\s\S]*?){%\s*endschema\s*%}/i);
-        
-        if (!schemaMatch) {
-            return {
-                message: 'No schema block found',
-                line: undefined,
-                friendlyMessage: 'No schema block found',
-                suggestion: 'Add a {% schema %} block to your liquid file',
-                context: undefined
-            };
-        }
 
-        const schemaContent = schemaMatch[1].trim();
-        const errorMessage = error instanceof Error ? error.message : 'Invalid JSON';
-        
-        let line: number | null = null;
-        let suggestion: string | null = null;
-        let context: string | null = null;
-        let friendlyMessage = errorMessage;
-        
-        // Extract position from error message
-        const positionMatch = errorMessage.match(/at position (\d+)/);
-        if (positionMatch) {
-            const position = parseInt(positionMatch[1]);
-            const beforeError = schemaContent.substring(0, position);
-            const lines = beforeError.split('\n');
-            line = lines.length;
-            
-            // Get context around the error
-            const allLines = schemaContent.split('\n');
-            const startLine = Math.max(0, line - 3);
-            const endLine = Math.min(allLines.length - 1, line + 2);
-            const contextLines = allLines.slice(startLine, endLine + 1);
-            const contextWithNumbers = contextLines.map((l, i) => {
-                const lineNum = startLine + i + 1;
-                const marker = lineNum === line ? '>>>' : '   ';
-                return `${marker} ${lineNum.toString().padStart(3, ' ')}: ${l}`;
-            });
-            context = contextWithNumbers.join('\n');
-        }
-        
-        // Analyze common JSON errors and provide helpful messages
-        if (errorMessage.includes('Unexpected token \']\'')) {
-            friendlyMessage = 'Trailing comma before closing bracket';
-            suggestion = 'Remove the comma before the closing bracket `]`. The last item in an array should not have a trailing comma.';
-        } else if (errorMessage.includes('Unexpected token \'}\'')) {
-            friendlyMessage = 'Trailing comma before closing brace';
-            suggestion = 'Remove the comma before the closing brace `}`. The last property in an object should not have a trailing comma.';
-        } else if (errorMessage.includes('Unexpected token \',\'')) {
-            friendlyMessage = 'Extra comma found';
-            suggestion = 'Remove the extra comma. Check for double commas or commas after closing brackets/braces.';
-        } else if (errorMessage.includes('Unexpected string')) {
-            friendlyMessage = 'Missing comma between items';
-            suggestion = 'Add a comma between JSON items (objects, arrays, or properties).';
-        } else if (errorMessage.includes('Unexpected token')) {
-            const tokenMatch = errorMessage.match(/Unexpected token (.+?) in JSON/);
-            if (tokenMatch) {
-                const token = tokenMatch[1];
-                friendlyMessage = `Unexpected character: ${token}`;
-                suggestion = `Check for invalid characters or syntax around this location. Common issues include unescaped quotes or invalid characters.`;
-            }
-        } else if (errorMessage.includes('Unterminated string')) {
-            friendlyMessage = 'Unterminated string';
-            suggestion = 'Check for missing closing quotes on strings. All strings must be wrapped in double quotes.';
-        } else if (errorMessage.includes('Expected property name')) {
-            friendlyMessage = 'Invalid property name';
-            suggestion = 'Object property names must be strings wrapped in double quotes.';
-        }
-        
-        return {
-            message: errorMessage,
-            line,
-            friendlyMessage,
-            suggestion,
-            context
-        };
-    }
 
     getTreeItem(element: SchemaTreeItem): vscode.TreeItem {
         return element;
     }
 
     getChildren(element?: SchemaTreeItem): Thenable<SchemaTreeItem[]> {
-        // If there's a parsing error, show error information
-        if (this.parsingError) {
+        // If there's a critical parsing error (no schema could be parsed), show error information
+        if (this.parseResult && !this.parseResult.schema && this.parseResult.originalError) {
             if (!element) {
                 // Root level - show main error
                 return Promise.resolve([
                     new SchemaTreeItem(
                         '❌ JSON Parsing Error',
-                        this.parsingError.friendlyMessage,
+                        this.parseResult.originalError,
                         vscode.TreeItemCollapsibleState.Expanded,
                         'json-error',
                         '$(error)',
                         undefined,
-                        this.parsingError.line || undefined
+                        this.parseResult.issues.length > 0 ? this.parseResult.issues[0].line : undefined
                     )
                 ]);
             } else if (element.contextValue === 'json-error') {
@@ -343,58 +293,40 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
     }
 
     private getJsonErrorDetails(): SchemaTreeItem[] {
-        const error = this.parsingError!;
+        if (!this.parseResult || this.parseResult.issues.length === 0) {
+            return [];
+        }
+
         const items: SchemaTreeItem[] = [];
 
-        // Error location
-        if (error.line) {
+        // Show original error if no schema was parsed
+        if (!this.parseResult.schema && this.parseResult.originalError) {
             items.push(new SchemaTreeItem(
-                `📍 Line ${error.line}`,
-                `Error occurs at line ${error.line}`,
+                `🔍 ${this.parseResult.originalError}`,
+                'Original JSON parsing error',
                 vscode.TreeItemCollapsibleState.None,
-                'error-location',
-                '$(location)',
-                undefined,
-                error.line
-            ));
-        }
-
-        // Friendly error message
-        items.push(new SchemaTreeItem(
-            `🔍 ${error.friendlyMessage}`,
-            error.message,
-            vscode.TreeItemCollapsibleState.None,
-            'error-message',
-            '$(info)',
-            undefined,
-            undefined
-        ));
-
-        // Suggestion
-        if (error.suggestion) {
-            items.push(new SchemaTreeItem(
-                '💡 Suggestion',
-                error.suggestion,
-                vscode.TreeItemCollapsibleState.Expanded,
-                'error-suggestion',
-                '$(lightbulb)',
+                'error-message',
+                '$(info)',
                 undefined,
                 undefined
             ));
         }
 
-        // Context
-        if (error.context) {
+        // Show all detected issues
+        this.parseResult.issues.forEach((issue, index) => {
+            const icon = issue.fixed ? '$(check)' : '$(warning)';
+            const status = issue.fixed ? 'Auto-fixed' : 'Needs attention';
+            
             items.push(new SchemaTreeItem(
-                '📝 Context',
-                'Code context around the error',
-                vscode.TreeItemCollapsibleState.Expanded,
-                'error-context',
-                '$(code)',
-                undefined,
-                undefined
+                `${icon} Line ${issue.line}: ${issue.message}`,
+                `${status}: ${issue.suggestion}`,
+                vscode.TreeItemCollapsibleState.None,
+                'json-issue',
+                icon,
+                issue,
+                issue.line
             ));
-        }
+        });
 
         // Common fixes
         items.push(new SchemaTreeItem(
@@ -414,6 +346,36 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
         const items: SchemaTreeItem[] = [];
         const schema = this.currentSchema!;
         const stats = this.schemaParser.getSchemaStats(schema);
+
+        // JSON Issues (if any were auto-fixed or detected)
+        if (this.parseResult && this.parseResult.issues.length > 0) {
+            const fixedIssues = this.parseResult.issues.filter(issue => issue.fixed);
+            const unfixedIssues = this.parseResult.issues.filter(issue => !issue.fixed);
+            
+            let statusText = '';
+            let icon = '$(check)';
+            let tooltip = '';
+            
+            if (unfixedIssues.length > 0) {
+                statusText = `${unfixedIssues.length} JSON issue${unfixedIssues.length !== 1 ? 's' : ''} need attention`;
+                icon = '$(warning)';
+                tooltip = 'Some JSON syntax issues require manual fixing';
+            } else if (fixedIssues.length > 0) {
+                statusText = `${fixedIssues.length} JSON issue${fixedIssues.length !== 1 ? 's' : ''} auto-fixed`;
+                icon = '$(check)';
+                tooltip = 'JSON syntax issues were automatically fixed';
+            }
+            
+            items.push(new SchemaTreeItem(
+                `JSON: ${statusText}`,
+                tooltip,
+                vscode.TreeItemCollapsibleState.Expanded,
+                'json-issues',
+                icon,
+                undefined,
+                undefined
+            ));
+        }
 
         // Validation status
         if (this.validationResult) {
@@ -508,6 +470,9 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
             case 'validation':
                 return this.getValidationItems();
             
+            case 'json-issues':
+                return this.getJsonIssuesItems();
+            
             case 'section-info':
                 return this.getSectionChildItems(schema);
             
@@ -540,12 +505,6 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
                 return this.getSettingsItems(blockData.settings || [], 'block-setting');
             
             // Error detail handlers
-            case 'error-suggestion':
-                return this.getSuggestionDetails();
-            
-            case 'error-context':
-                return this.getContextDetails();
-            
             case 'common-fixes':
                 return this.getCommonFixesItems();
             
@@ -554,85 +513,52 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
         }
     }
 
-    private getSuggestionDetails(): SchemaTreeItem[] {
-        const error = this.parsingError!;
-        if (!error.suggestion) return [];
 
-        const lines = error.suggestion.split('\n');
-        return lines.map((line, index) => new SchemaTreeItem(
-            line.trim(),
-            line.trim(),
-            vscode.TreeItemCollapsibleState.None,
-            'suggestion-line',
-            '$(arrow-right)',
-            undefined,
-            undefined
-        ));
-    }
-
-    private getContextDetails(): SchemaTreeItem[] {
-        const error = this.parsingError!;
-        if (!error.context) return [];
-
-        const lines = error.context.split('\n');
-        return lines.map((line, index) => {
-            const isErrorLine = line.startsWith('>>>');
-            return new SchemaTreeItem(
-                line,
-                line,
-                vscode.TreeItemCollapsibleState.None,
-                'context-line',
-                isErrorLine ? '$(arrow-right)' : '$(blank)',
-                undefined,
-                undefined
-            );
-        });
-    }
 
     private getCommonFixesItems(): SchemaTreeItem[] {
         return [
             new SchemaTreeItem(
-                'Remove trailing commas after the last item in arrays/objects',
-                'JSON does not allow trailing commas after the last element',
+                '🚫 Trailing Commas: Remove commas before }, ]',
+                'Example: {"key": "value",} ❌ → {"key": "value"} ✅',
                 vscode.TreeItemCollapsibleState.None,
                 'fix-tip',
-                '$(check)',
+                '$(dash)',
                 undefined,
                 undefined
             ),
             new SchemaTreeItem(
-                'Ensure all strings are wrapped in double quotes',
-                'All JSON strings must use double quotes, not single quotes',
+                '➕ Missing Commas: Add commas between elements',
+                'Example: {"a": 1} {"b": 2} ❌ → {"a": 1}, {"b": 2} ✅',
                 vscode.TreeItemCollapsibleState.None,
                 'fix-tip',
-                '$(check)',
+                '$(dash)',
                 undefined,
                 undefined
             ),
             new SchemaTreeItem(
-                'Check for missing commas between items',
-                'All JSON items (objects, arrays, properties) need commas between them',
+                '📝 Quotes: Use double quotes for all strings',
+                "Example: {'key': 'value'} ❌ → {\"key\": \"value\"} ✅",
                 vscode.TreeItemCollapsibleState.None,
                 'fix-tip',
-                '$(check)',
+                '$(dash)',
                 undefined,
                 undefined
             ),
             new SchemaTreeItem(
-                'Verify all brackets and braces are properly closed',
-                'Make sure every opening bracket [ or brace { has a corresponding closing bracket ] or brace }',
+                '🔧 Auto-format: Use Shift+Alt+F (Windows/Linux) or Shift+Option+F (Mac)',
+                'VS Code can automatically format and highlight JSON syntax issues',
                 vscode.TreeItemCollapsibleState.None,
                 'fix-tip',
-                '$(check)',
+                '$(dash)',
                 undefined,
                 undefined
             ),
             new SchemaTreeItem(
-                'Use VS Code formatting (Shift+Alt+F) to check structure',
-                'VS Code can help identify structural issues with JSON formatting',
+                '✅ Validate: Use a JSON validator online',
+                'Copy your schema content to jsonlint.com to check for syntax errors',
                 vscode.TreeItemCollapsibleState.None,
                 'fix-tip',
-                '$(check)',
+                '$(dash)',
                 undefined,
                 undefined
             )
@@ -717,6 +643,43 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
                 undefined
             ));
         }
+
+        return items;
+    }
+
+    private getJsonIssuesItems(): SchemaTreeItem[] {
+        if (!this.parseResult || this.parseResult.issues.length === 0) {
+            return [];
+        }
+
+        const items: SchemaTreeItem[] = [];
+
+        // Show all detected issues
+        this.parseResult.issues.forEach((issue, index) => {
+            const icon = issue.fixed ? '$(check)' : '$(warning)';
+            const status = issue.fixed ? 'Auto-fixed' : 'Needs attention';
+            
+            items.push(new SchemaTreeItem(
+                `Line ${issue.line}: ${issue.message}`,
+                `${status}: ${issue.suggestion}`,
+                vscode.TreeItemCollapsibleState.None,
+                'json-issue',
+                icon,
+                issue,
+                issue.line
+            ));
+        });
+
+        // Add common fixes section
+        items.push(new SchemaTreeItem(
+            '🔧 Common JSON Fixes',
+            'General tips for fixing JSON syntax errors',
+            vscode.TreeItemCollapsibleState.Expanded,
+            'common-fixes',
+            '$(tools)',
+            undefined,
+            undefined
+        ));
 
         return items;
     }
@@ -1046,6 +1009,28 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
         if (setting.id) {
             description += ` • ID: ${setting.id}`;
         }
+
+        // Add type-specific info to description
+        if (setting.type === 'metaobject' && setting.metaobject_type) {
+            description += ` • Type: ${setting.metaobject_type}`;
+        }
+        
+        if ((setting.type === 'collection_list' || setting.type === 'product_list') && setting.limit) {
+            description += ` • Limit: ${setting.limit}`;
+        }
+        
+        if (setting.type === 'range') {
+            if (setting.min !== undefined && setting.max !== undefined) {
+                description += ` • Range: ${setting.min}-${setting.max}`;
+            }
+            if (setting.unit) {
+                description += ` ${setting.unit}`;
+            }
+        }
+
+        if ((setting.type === 'select' || setting.type === 'radio') && setting.options) {
+            description += ` • ${setting.options.length} options`;
+        }
         
         if (setting.default !== undefined) {
             const defaultStr = typeof setting.default === 'string' ? 
@@ -1145,8 +1130,133 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
                 this.schemaLineMap.get(`setting:${setting.id}`)
             ));
         }
+
+        // Type-specific attributes
+        this.addTypeSpecificDetails(items, setting);
         
         return items;
+    }
+
+    private addTypeSpecificDetails(items: SchemaTreeItem[], setting: Setting): void {
+        // Range settings
+        if (setting.type === 'range') {
+            if (setting.min !== undefined) {
+                items.push(new SchemaTreeItem(
+                    `Min: ${setting.min}`,
+                    'Minimum value for the range slider',
+                    vscode.TreeItemCollapsibleState.None,
+                    'setting-detail',
+                    '$(arrow-down)',
+                    setting,
+                    this.schemaLineMap.get(`setting:${setting.id}`)
+                ));
+            }
+            if (setting.max !== undefined) {
+                items.push(new SchemaTreeItem(
+                    `Max: ${setting.max}`,
+                    'Maximum value for the range slider',
+                    vscode.TreeItemCollapsibleState.None,
+                    'setting-detail',
+                    '$(arrow-up)',
+                    setting,
+                    this.schemaLineMap.get(`setting:${setting.id}`)
+                ));
+            }
+            if (setting.step !== undefined) {
+                items.push(new SchemaTreeItem(
+                    `Step: ${setting.step}`,
+                    'Increment size between steps',
+                    vscode.TreeItemCollapsibleState.None,
+                    'setting-detail',
+                    '$(symbol-numeric)',
+                    setting,
+                    this.schemaLineMap.get(`setting:${setting.id}`)
+                ));
+            }
+            if (setting.unit) {
+                items.push(new SchemaTreeItem(
+                    `Unit: ${setting.unit}`,
+                    'Unit displayed with the value (e.g., px, %, em)',
+                    vscode.TreeItemCollapsibleState.None,
+                    'setting-detail',
+                    '$(symbol-ruler)',
+                    setting,
+                    this.schemaLineMap.get(`setting:${setting.id}`)
+                ));
+            }
+        }
+
+        // Collection list and product list settings
+        if (setting.type === 'collection_list' || setting.type === 'product_list') {
+            if (setting.limit !== undefined) {
+                const itemType = setting.type === 'collection_list' ? 'collections' : 'products';
+                items.push(new SchemaTreeItem(
+                    `Limit: ${setting.limit}`,
+                    `Maximum number of ${itemType} that can be selected (max 50)`,
+                    vscode.TreeItemCollapsibleState.None,
+                    'setting-detail',
+                    '$(symbol-number)',
+                    setting,
+                    this.schemaLineMap.get(`setting:${setting.id}`)
+                ));
+            }
+        }
+
+        // Metaobject settings
+        if (setting.type === 'metaobject') {
+            if (setting.metaobject_type) {
+                items.push(new SchemaTreeItem(
+                    `Metaobject Type: ${setting.metaobject_type}`,
+                    'The metaobject definition type to use for this setting',
+                    vscode.TreeItemCollapsibleState.None,
+                    'setting-detail',
+                    '$(symbol-object)',
+                    setting,
+                    this.schemaLineMap.get(`setting:${setting.id}`)
+                ));
+            }
+        }
+
+        // Video URL settings
+        if (setting.type === 'video_url') {
+            if (setting.accept && setting.accept.length > 0) {
+                items.push(new SchemaTreeItem(
+                    `Accepted Providers: ${setting.accept.join(', ')}`,
+                    'Video providers accepted by this setting (youtube, vimeo)',
+                    vscode.TreeItemCollapsibleState.None,
+                    'setting-detail',
+                    '$(device-camera-video)',
+                    setting,
+                    this.schemaLineMap.get(`setting:${setting.id}`)
+                ));
+            }
+        }
+
+        // Text and number settings
+        if ((setting.type === 'text' || setting.type === 'number') && setting.placeholder) {
+            items.push(new SchemaTreeItem(
+                `Placeholder: "${setting.placeholder}"`,
+                'Placeholder text shown in the input field',
+                vscode.TreeItemCollapsibleState.None,
+                'setting-detail',
+                '$(symbol-text)',
+                setting,
+                this.schemaLineMap.get(`setting:${setting.id}`)
+            ));
+        }
+
+        // Options for select and radio settings
+        if ((setting.type === 'select' || setting.type === 'radio') && setting.options && setting.options.length > 0) {
+            items.push(new SchemaTreeItem(
+                `Options (${setting.options.length})`,
+                `Available options for this ${setting.type} setting`,
+                vscode.TreeItemCollapsibleState.Expanded,
+                'setting-options',
+                '$(symbol-enum)',
+                setting.options,
+                this.schemaLineMap.get(`setting:${setting.id}`)
+            ));
+        }
     }
 
     private getOptionItems(options: Option[]): SchemaTreeItem[] {

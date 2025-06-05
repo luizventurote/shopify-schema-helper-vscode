@@ -2,7 +2,7 @@
   "name": "shopify-schema-helper",
   "displayName": "Shopify Schema Helper",
   "description": "Visualize Shopify section and block schemas with ease",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "publisher": "luizventurote",
   "icon": "media/shopify-schema-helper-logo.png",
   "author": {
@@ -63,10 +63,26 @@
         "icon": "$(export)"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "shopifySchemaHelper",
+          "title": "Shopify Schema Helper",
+          "icon": "$(symbol-structure)"
+        }
+      ]
+    },
     "views": {
-      "explorer": [
+      "shopifySchemaHelper": [
         {
           "id": "shopifySchemaView",
+          "name": "Schema Explorer",
+          "when": "resourceExtname == .liquid"
+        }
+      ],
+      "explorer": [
+        {
+          "id": "shopifySchemaViewExplorer",
           "name": "Shopify Schema",
           "when": "resourceExtname == .liquid"
         }
@@ -76,12 +92,12 @@
       "view/title": [
         {
           "command": "shopifySchemaHelper.refreshTree",
-          "when": "view == shopifySchemaView",
+          "when": "view == shopifySchemaView || view == shopifySchemaViewExplorer",
           "group": "navigation"
         },
         {
           "command": "shopifySchemaHelper.validateSchema",
-          "when": "view == shopifySchemaView",
+          "when": "view == shopifySchemaView || view == shopifySchemaViewExplorer",
           "group": "navigation"
         }
       ],

@@ -178,10 +178,16 @@ export class SchemaValidator {
 
     private validateSettingType(setting: Setting, path: string, errors: ValidationError[], warnings: ValidationWarning[]) {
         const validTypes = [
+            // Basic input settings
             'text', 'textarea', 'number', 'range', 'checkbox', 'select', 'radio',
-            'color', 'font_picker', 'collection', 'product', 'blog', 'page',
-            'link_list', 'url', 'richtext', 'html', 'liquid', 'image_picker',
-            'video', 'video_url', 'article', 'header', 'paragraph'
+            // Specialized input settings  
+            'article', 'blog', 'collection', 'collection_list', 'color', 'color_background',
+            'color_scheme', 'color_scheme_group', 'font_picker', 'html', 'image_picker',
+            'inline_richtext', 'link_list', 'liquid', 'metaobject', 'metaobject_list',
+            'page', 'product', 'product_list', 'richtext', 'text_alignment', 'url',
+            'video', 'video_url',
+            // Informational settings
+            'header', 'paragraph'
         ];
 
         if (!validTypes.includes(setting.type)) {
@@ -196,17 +202,24 @@ export class SchemaValidator {
         switch (setting.type) {
             case 'range':
                 if (setting.min === undefined || setting.max === undefined) {
-                    warnings.push({
-                        type: 'warning',
-                        message: 'Range settings should have min and max values',
-                        path,
-                        suggestion: 'Add min and max properties to define the range'
-                    });
-                }
-                if (setting.min !== undefined && setting.max !== undefined && setting.min >= setting.max) {
                     errors.push({
                         type: 'error',
-                        message: 'Range min value must be less than max value',
+                        message: 'Range settings require both min and max properties',
+                        path
+                    });
+                } else {
+                    if (setting.min >= setting.max) {
+                        errors.push({
+                            type: 'error',
+                            message: 'Range min value must be less than max value',
+                            path
+                        });
+                    }
+                }
+                if (setting.step !== undefined && setting.step <= 0) {
+                    errors.push({
+                        type: 'error',
+                        message: 'Range step must be greater than 0',
                         path
                     });
                 }
@@ -243,6 +256,60 @@ export class SchemaValidator {
                         message: 'Paragraph settings should have content property',
                         path,
                         suggestion: 'Add content property to display text for this paragraph'
+                    });
+                }
+                break;
+                
+            case 'text_alignment':
+                if (setting.default && !['left', 'center', 'right'].includes(setting.default)) {
+                    errors.push({
+                        type: 'error',
+                        message: 'text_alignment default must be "left", "center", or "right"',
+                        path
+                    });
+                }
+                break;
+                
+            case 'metaobject':
+                if (!setting.metaobject_type) {
+                    errors.push({
+                        type: 'error',
+                        message: 'metaobject settings require metaobject_type property',
+                        path
+                    });
+                }
+                break;
+                
+            case 'collection_list':
+            case 'product_list':
+                if (setting.limit !== undefined) {
+                    if (setting.limit < 1 || setting.limit > 50) {
+                        errors.push({
+                            type: 'error',
+                            message: `${setting.type} limit must be between 1 and 50`,
+                            path
+                        });
+                    }
+                }
+                break;
+                
+            case 'video_url':
+                if (setting.accept && Array.isArray(setting.accept)) {
+                    const validProviders = ['youtube', 'vimeo'];
+                    setting.accept.forEach(provider => {
+                        if (!validProviders.includes(provider)) {
+                            errors.push({
+                                type: 'error',
+                                message: `Invalid video provider: "${provider}". Valid options are: ${validProviders.join(', ')}`,
+                                path
+                            });
+                        }
+                    });
+                } else if (setting.accept) {
+                    errors.push({
+                        type: 'error',
+                        message: 'video_url accept property must be an array',
+                        path
                     });
                 }
                 break;

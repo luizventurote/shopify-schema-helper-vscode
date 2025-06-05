@@ -19,8 +19,13 @@ export function activate(context: vscode.ExtensionContext) {
     const translationManager = new TranslationManager(context);
     const schemaTreeProvider = new SchemaTreeDataProvider(schemaParser, translationManager);
     
-    // Register tree data provider
+    // Register tree data providers for both views
     const treeView = vscode.window.createTreeView('shopifySchemaView', {
+        treeDataProvider: schemaTreeProvider,
+        showCollapseAll: true
+    });
+
+    const treeViewExplorer = vscode.window.createTreeView('shopifySchemaViewExplorer', {
         treeDataProvider: schemaTreeProvider,
         showCollapseAll: true
     });
@@ -345,6 +350,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(
         treeView,
+        treeViewExplorer,
         refreshCommand,
         validateSchemaCommand,
         exportSchemaCommand,
