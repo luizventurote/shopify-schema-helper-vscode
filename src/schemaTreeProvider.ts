@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { SchemaParser, ShopifySchema, Setting, Block, Preset, Option } from './schemaParser';
 import { SchemaValidator, ValidationResult } from './schemaValidator';
+import { TranslationManager } from './translationManager';
 
 export interface JsonParsingError {
     message: string;
@@ -21,7 +22,7 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
     private parsingError: JsonParsingError | null = null;
     private schemaLineMap: Map<string, number> = new Map(); // Track line numbers for schema elements
 
-    constructor(private schemaParser: SchemaParser) {
+    constructor(private schemaParser: SchemaParser, private translationManager: TranslationManager) {
         this.schemaValidator = new SchemaValidator();
     }
 
@@ -455,7 +456,8 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
         }
 
         // Schema name and basic info - this will contain settings, blocks, presets as children
-        const sectionName = schema.name || 'Unnamed Section';
+        const rawSectionName = schema.name || 'Unnamed Section';
+        const sectionName = this.translationManager.translate(rawSectionName, true);
         const sectionDescription = this.getSectionDescription(schema, stats);
         const fileTypeIcon = schema._fileType === 'block' ? '$(symbol-module)' : '$(symbol-class)';
         
@@ -942,9 +944,9 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
             // For header type, use content as the display name
             let displayName: string;
             if (setting.type === 'header') {
-                displayName = setting.content || 'Header';
+                displayName = this.translationManager.translate(setting.content || 'Header', true);
             } else {
-                displayName = setting.label || setting.id || 'Unnamed Setting';
+                displayName = this.translationManager.translateSettingLabel(setting.label, setting.id);
             }
             
             return new SchemaTreeItem(
@@ -962,16 +964,17 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
     private getBlocksItems(blocks: Block[]): SchemaTreeItem[] {
         return blocks.map(block => {
             const settingsCount = block.settings?.length || 0;
+            const translatedBlockName = this.translationManager.translateBlockName(block.name, block.type);
             const description = `Type: ${block.type}${settingsCount > 0 ? ` • ${settingsCount} settings` : ''}${block.limit ? ` • Limit: ${block.limit}` : ''}`;
             
             return new SchemaTreeItem(
-                block.name,
+                translatedBlockName,
                 description,
                 settingsCount > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None,
                 'block',
                 '$(symbol-module)',
                 block,
-                this.schemaLineMap.get(`block:${block.name}`)
+                this.schemaLineMap.get(`block:${block.name || 'unnamed'}`)
             );
         });
     }
@@ -980,16 +983,17 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
         return presets.map((preset, index) => {
             const blocksCount = preset.blocks?.length || 0;
             const settingsCount = Object.keys(preset.settings || {}).length;
+            const translatedPresetName = this.translationManager.translate(preset.name || 'Unnamed Preset', true);
             const description = `${blocksCount} blocks • ${settingsCount} settings`;
             
             return new SchemaTreeItem(
-                preset.name,
+                translatedPresetName,
                 description,
                 vscode.TreeItemCollapsibleState.None,
                 'preset',
                 '$(symbol-snippet)',
                 preset,
-                this.schemaLineMap.get(`preset:${preset.name}`)
+                this.schemaLineMap.get(`preset:${preset.name || 'unnamed'}`)
             );
         });
     }
@@ -1087,8 +1091,9 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
         
         // Content (for header and paragraph types)
         if (setting.content) {
+            const translatedContent = this.translationManager.translate(setting.content, true);
             items.push(new SchemaTreeItem(
-                `Content: "${setting.content}"`,
+                `Content: "${translatedContent}"`,
                 'Display content for this element',
                 vscode.TreeItemCollapsibleState.None,
                 'setting-detail',
@@ -1116,8 +1121,9 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
         
         // Info
         if (setting.info) {
+            const translatedInfo = this.translationManager.translate(setting.info, true);
             items.push(new SchemaTreeItem(
-                `Info: "${setting.info}"`,
+                `Info: "${translatedInfo}"`,
                 'Help text shown to users',
                 vscode.TreeItemCollapsibleState.None,
                 'setting-detail',
@@ -1146,9 +1152,10 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
     private getOptionItems(options: Option[]): SchemaTreeItem[] {
         return options.map(option => {
             const description = `Value: ${option.value}`;
+            const translatedLabel = this.translationManager.translateOption(option.label);
             
             return new SchemaTreeItem(
-                option.label,
+                translatedLabel,
                 description,
                 vscode.TreeItemCollapsibleState.None,
                 'setting-option',

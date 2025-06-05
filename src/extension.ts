@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { SchemaTreeDataProvider } from './schemaTreeProvider';
 // import { SchemaBuilderPanel } from './schemaBuilderPanel'; // Disabled for now
 import { SchemaParser } from './schemaParser';
+import { TranslationManager } from './translationManager';
 
 // Diagnostic collection for JSON parsing errors
 let schemaDiagnostics: vscode.DiagnosticCollection;
@@ -15,7 +16,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Create schema parser and tree data provider
     const schemaParser = new SchemaParser();
-    const schemaTreeProvider = new SchemaTreeDataProvider(schemaParser);
+    const translationManager = new TranslationManager(context);
+    const schemaTreeProvider = new SchemaTreeDataProvider(schemaParser, translationManager);
     
     // Register tree data provider
     const treeView = vscode.window.createTreeView('shopifySchemaView', {
@@ -308,6 +310,24 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
+    // Monitor changes to the locales file
+    const localesPattern = new vscode.RelativePattern(vscode.workspace.workspaceFolders?.[0] || '', 'locales/en.default.schema.json');
+    const localesWatcher = vscode.workspace.createFileSystemWatcher(localesPattern);
+    
+    localesWatcher.onDidChange(async () => {
+        console.log('Locales file changed, reloading translations...');
+        await translationManager.reloadTranslations();
+        schemaTreeProvider.refresh();
+        vscode.window.showInformationMessage('Shopify translations reloaded from locales file.');
+    });
+
+    localesWatcher.onDidCreate(async () => {
+        console.log('Locales file created, loading translations...');
+        await translationManager.reloadTranslations();
+        schemaTreeProvider.refresh();
+        vscode.window.showInformationMessage('Shopify translations loaded from locales file.');
+    });
+
     // Initialize with current active editor if it's a liquid file
     if (vscode.window.activeTextEditor?.document.fileName.endsWith('.liquid')) {
         schemaTreeProvider.updateSchema(vscode.window.activeTextEditor.document);
@@ -331,7 +351,8 @@ export function activate(context: vscode.ExtensionContext) {
         navigateToLineCommand,
         activeEditorListener,
         documentChangeListener,
-        documentSaveListener
+        documentSaveListener,
+        localesWatcher
     );
 
     // Show welcome message on first activation

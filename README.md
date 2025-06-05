@@ -22,6 +22,13 @@ A powerful VS Code extension that makes it easy to visualize and validate Shopif
 - Error navigation
 - Smart line mapping for schema elements
 
+### 🌐 **Shopify Translation Support**
+- **Automatic translation loading**: Reads translations from your theme's `locales/en.default.schema.json` file
+- **Real-time updates**: Automatically reloads when you modify the locales file
+- **Smart fallbacks**: Shows original schema values when locales file is missing or translations aren't found
+- **Translation key support**: Converts `t:` keys to their English equivalents from your theme
+- **What gets translated**: Setting labels, block names, section names, and option values using your theme's translation file
+
 ## 🚀 **Getting Started**
 
 1. **Install the Extension** (when published)
@@ -35,6 +42,14 @@ A powerful VS Code extension that makes it easy to visualize and validate Shopif
 - **Validate Schema** - Check current schema for errors and warnings
 - **Refresh Tree** - Manually refresh the schema tree view
 - **Navigate to Line** - Click any tree item to jump to source (automatic)
+
+### **Translation Support**
+The extension automatically reads your Shopify theme's translation file:
+- **File location**: `locales/en.default.schema.json` in your workspace root
+- **Automatic loading**: Translations load when you open a `.liquid` file
+- **Live updates**: Changes to the locales file are detected and applied instantly
+- **Smart fallbacks**: If the locales file doesn't exist or a translation is missing, shows original schema values instead of broken keys
+- **Example**: `t:sections.collage.name` becomes the actual section name from your translations
 
 ### **Context Menu Integration**
 Right-click any `.liquid` file to access:
