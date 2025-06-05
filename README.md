@@ -4,17 +4,6 @@ A powerful VS Code extension that makes it easy to visualize and validate Shopif
 
 <img src="media/demo.gif" alt="Shopify Schema Helper Demo" width="500" height="auto">
 
-## 🎉 **What's New in v0.2.0**
-
-### **Complete Setting Type Support** 
-✅ **All Shopify setting types now supported** - No more "Unknown setting type" errors!  
-✅ **Advanced validation** - Specific validation for metaobject, collection_list, product_list, and more  
-✅ **Precise line navigation** - Fixed off-by-one error for accurate click-to-navigate  
-✅ **Enhanced details** - Type-specific attributes and validation shown in tree view  
-✅ **Flexible UI placement** - Choose between dedicated sidebar or Explorer panel!
-
-**New setting types added:** `metaobject`, `collection_list`, `product_list`, `text_alignment`, `color_background`, and more!
-
 ## ✨ Features
 
 ### 🔍 **Real-time Schema Visualization**
