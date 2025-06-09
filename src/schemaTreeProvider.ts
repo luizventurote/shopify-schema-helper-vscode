@@ -66,7 +66,7 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
         }
 
         const text = document.getText();
-        const schemaMatch = text.match(/{%\s*schema\s*%}([\s\S]*?){%\s*endschema\s*%}/i);
+        const schemaMatch = text.match(/\{%-?\s*schema\s*-?%\}([\s\S]*?)\{%-?\s*endschema\s*-?%\}/i);
         
         if (!schemaMatch) {
             return;
@@ -88,7 +88,7 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
 
     private buildSchemaLineMap(document: vscode.TextDocument): void {
         const text = document.getText();
-        const schemaMatch = text.match(/{%\s*schema\s*%}([\s\S]*?){%\s*endschema\s*%}/i);
+        const schemaMatch = text.match(/\{%-?\s*schema\s*-?%\}([\s\S]*?)\{%-?\s*endschema\s*-?%\}/i);
         
         if (!schemaMatch) {
             return;

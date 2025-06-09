@@ -91,7 +91,7 @@ export class SchemaParser {
 
     public parseDocument(document: vscode.TextDocument): ParseResult {
         const text = document.getText();
-        const schemaMatch = text.match(/{%\s*schema\s*%}([\s\S]*?){%\s*endschema\s*%}/i);
+        const schemaMatch = text.match(/\{%-?\s*schema\s*-?%\}([\s\S]*?)\{%-?\s*endschema\s*-?%\}/i);
         
         if (!schemaMatch) {
             return {
