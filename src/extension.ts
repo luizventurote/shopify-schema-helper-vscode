@@ -58,7 +58,7 @@ export function activate(context: vscode.ExtensionContext) {
         
         // Also check for common JSON syntax issues using the parser's validator
         const text = document.getText();
-        const schemaMatch = text.match(/{%\s*schema\s*%}([\s\S]*?){%\s*endschema\s*%}/i);
+        const schemaMatch = text.match(/\{%-?\s*schema\s*-?%\}([\s\S]*?)\{%-?\s*endschema\s*-?%\}/i);
         
         if (schemaMatch) {
             const schemaContent = schemaMatch[1].trim();
@@ -99,7 +99,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     function createPreciseJsonDiagnostic(document: vscode.TextDocument, error: any): vscode.Diagnostic | null {
         const text = document.getText();
-        const schemaMatch = text.match(/{%\s*schema\s*%}([\s\S]*?){%\s*endschema\s*%}/i);
+        const schemaMatch = text.match(/\{%-?\s*schema\s*-?%\}([\s\S]*?)\{%-?\s*endschema\s*-?%\}/i);
         
         if (!schemaMatch) {
             return null;
