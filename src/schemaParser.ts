@@ -97,7 +97,7 @@ export class SchemaParser {
             return {
                 schema: null,
                 issues: [],
-                originalError: 'No schema block found'
+                originalError: null
             };
         }
 
