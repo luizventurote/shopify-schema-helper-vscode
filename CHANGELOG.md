@@ -2,15 +2,15 @@
 
 All notable changes to the Shopify Schema Helper extension will be documented in this file.
 
-
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.1] - 2025-06-09
+## [0.2.1] - 2025-06-20
 
 ### Fixed
+- Added validation for empty default values - Shopify requires default values to be non-empty or omitted entirely ([#2](https://github.com/luizventurote/shopify-schema-helper-vscode/issues/2))
 - Schema detection now recognizes whitespace-trimmed tags `{%- schema -%}` and `{%- endschema -%}`.
 
-## [0.2.0] - 2024-12-18
+## [0.2.0] - 2025-06-05
 
 ### 🎉 Major Feature Release
 
@@ -68,7 +68,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Enhanced setting type icon mapping for better visual distinction
 - Improved error messages and suggestions for better developer experience
 
-## [0.1.7] - 2024-12-XX
+## [0.1.7]
 
 ### Added
 - **Robust JSON Parsing** - Revolutionary error handling that transforms the extension from brittle to resilient:
@@ -88,7 +88,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Enhanced error handling philosophy: Show warnings, don't break the experience
 - Improved developer productivity by allowing schema visualization even with minor syntax issues
 
-## [0.1.6] - 2024-12-XX
+## [0.1.6]
 
 ### Added
 - **Shopify Translation Support**:
@@ -102,7 +102,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Translation key resolution and fallback handling
 - Locales file parsing and error handling
 
-## [0.1.5] - 2024-12-XX
+## [0.1.5]
 
 ### Added
 - Enhanced validation system with comprehensive schema checks
@@ -111,7 +111,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Support for @app and @theme blocks
 - Improved block validation and duplicate detection
 
-## [0.1.4] - 2024-12-XX
+## [0.1.4]
 
 ### Added
 - Section and theme block distinction
@@ -119,7 +119,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - File type detection and display
 - Improved preset validation
 
-## [0.1.3] - 2024-12-XX
+## [0.1.3]
 
 ### Added
 - Advanced schema validation engine
@@ -127,7 +127,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Block structure validation
 - Preset configuration validation
 
-## [0.1.2] - 2024-12-XX
+## [0.1.2]
 
 ### Added
 - Real-time schema visualization
@@ -135,14 +135,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Setting, block, and preset display
 - Basic click-to-navigate functionality
 
-## [0.1.1] - 2024-12-XX
+## [0.1.1]
 
 ### Added
 - Enhanced schema parsing
 - Basic validation
 - Tree view improvements
 
-## [0.1.0] - 2024-12-XX
+## [0.1.0]
 
 ### Added
 - Initial release
@@ -154,7 +154,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Enhanced Block Fallback**: When a block doesn't have a name or translation, now displays the block type (e.g., "image", "text", "video") instead of generic "Unnamed Block"
 - **Better Developer Experience**: More descriptive labels for unnamed blocks align with Shopify's block type conventions
 
-## [0.1.5] - 2024-01-17
+## [0.1.5]
 
 ### 🛡️ **Bug Fixes**
 - **Fixed Critical Error**: Resolved "Cannot read properties of undefined (reading 'startsWith')" error
@@ -162,7 +162,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Robust Error Handling**: Extension now gracefully handles malformed schemas with missing name properties
 - **Smart Fallbacks**: Added descriptive fallback names for blocks, presets, and options when data is incomplete
 
-## [0.1.4] - 2024-01-16
+## [0.1.4]
 
 ### 🌐 **Translation Support - Fallback System**
 - **Smart Fallbacks**: When locales file doesn't exist or translations are missing, now shows original schema values instead of broken keys
@@ -170,7 +170,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Enhanced UX**: Better experience during incremental theme development
 - **Documentation**: Updated README with fallback behavior details
 
-## [0.1.3] - 2024-01-16
+## [0.1.3]
 
 ### 🌐 **Major Translation System Overhaul**
 - **Locales File Integration**: Complete rewrite to read from `locales/en.default.schema.json` instead of hardcoded translations
@@ -180,14 +180,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Comprehensive Translation**: Translates section names, setting labels, info text, header content, block names, option labels, and preset names
 - **Seamless Shopify Integration**: Perfect integration with Shopify theme development workflow
 
-## [0.1.2] - 2024-01-15
+## [0.1.2]
 
 ### 🌎 **Internationalization Enhancement**
 - **Brazilian Portuguese Added**: Added pt-BR support with Brazil-specific terminology
 - **Language Distinction**: Updated language picker to distinguish "Português (Portugal)" and "Português (Brasil)"
 - **11 Total Languages**: Now supporting English, Spanish, French, German, Portuguese, Italian, Japanese, Korean, Chinese Simplified/Traditional, and Brazilian Portuguese
 
-## [0.1.1] - 2024-01-15
+## [0.1.1]
 
 ### 🎨 **Branding & Visual Enhancements**
 - **Extension Icon**: Added shopify-schema-helper-logo.png as VS Code extension icon
@@ -200,7 +200,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Language Switching**: Globe icon in toolbar and Command Palette access for language selection
 - **Persistent Settings**: Language preferences stored in VS Code global state
 
-## [0.1.0] - 2024-01-15
+## [0.1.0]
 
 ### ✨ Initial Release
 

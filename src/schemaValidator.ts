@@ -315,6 +315,18 @@ export class SchemaValidator {
                 break;
         }
         
+        // Validate default property is not empty
+        if (setting.default !== undefined && setting.default !== null) {
+            // For string types, check if the default is an empty string
+            if (typeof setting.default === 'string' && setting.default.trim() === '') {
+                errors.push({
+                    type: 'error',
+                    message: 'Default value can\'t be blank. Remove the default property or provide a non-empty value',
+                    path: `${path}.default`
+                });
+            }
+        }
+
         // Validate visible_if property
         if (setting.visible_if) {
             this.validateVisibleIf(setting.visible_if, path, errors, warnings);
