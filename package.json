@@ -137,7 +137,17 @@
         "aliases": ["Liquid", "liquid"],
         "extensions": [".liquid"]
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Shopify Schema Helper",
+      "properties": {
+        "shopifySchemaHelper.enableThemeCheck": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Shopify Theme Check validation"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

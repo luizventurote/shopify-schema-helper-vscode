@@ -144,6 +144,10 @@ src/
 └── schemaBuilderPanel.ts  # Visual builder (disabled)
 ```
 
+## ⚙️ **Configuration**
+
+- `shopifySchemaHelper.enableThemeCheck` - Enable or disable Shopify Theme Check validation. Defaults to `true`.
+
 ## 📚 **Resources**
 
 - [Shopify Theme Blocks Documentation](https://shopify.dev/docs/storefronts/themes/architecture/blocks)

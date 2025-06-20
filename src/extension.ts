@@ -10,6 +10,17 @@ let schemaDiagnostics: vscode.DiagnosticCollection;
 export function activate(context: vscode.ExtensionContext) {
     console.log('Shopify Schema Helper is now active!');
 
+    const config = vscode.workspace.getConfiguration('shopifySchemaHelper');
+    let themeCheckEnabled = config.get<boolean>('enableThemeCheck', true);
+
+    vscode.workspace.onDidChangeConfiguration(event => {
+        if (event.affectsConfiguration('shopifySchemaHelper.enableThemeCheck')) {
+            themeCheckEnabled = vscode.workspace
+                .getConfiguration('shopifySchemaHelper')
+                .get<boolean>('enableThemeCheck', true);
+        }
+    });
+
     // Create diagnostic collection
     schemaDiagnostics = vscode.languages.createDiagnosticCollection('shopifySchema');
     context.subscriptions.push(schemaDiagnostics);
@@ -201,6 +212,10 @@ export function activate(context: vscode.ExtensionContext) {
         return null;
     }
 
+    function runThemeCheck(document: vscode.TextDocument) {
+        console.log(`Theme Check running on ${document.fileName}`);
+    }
+
     // Register commands
     const refreshCommand = vscode.commands.registerCommand('shopifySchemaHelper.refreshTree', () => {
         schemaTreeProvider.refresh();
@@ -245,6 +260,9 @@ export function activate(context: vscode.ExtensionContext) {
         }
 
         schemaTreeProvider.refresh(); // This will trigger validation
+        if (themeCheckEnabled) {
+            runThemeCheck(currentEditor.document);
+        }
         vscode.window.showInformationMessage('Schema validation completed. Check the Shopify Schema panel for details.');
     });
 
