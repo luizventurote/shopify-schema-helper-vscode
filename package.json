@@ -137,7 +137,11 @@
         "aliases": ["Liquid", "liquid"],
         "extensions": [".liquid"]
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Shopify Schema Helper",
+      "properties": {}
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

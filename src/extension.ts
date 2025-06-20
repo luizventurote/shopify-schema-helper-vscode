@@ -10,6 +10,8 @@ let schemaDiagnostics: vscode.DiagnosticCollection;
 export function activate(context: vscode.ExtensionContext) {
     console.log('Shopify Schema Helper is now active!');
 
+
+
     // Create diagnostic collection
     schemaDiagnostics = vscode.languages.createDiagnosticCollection('shopifySchema');
     context.subscriptions.push(schemaDiagnostics);
@@ -200,6 +202,8 @@ export function activate(context: vscode.ExtensionContext) {
         // If we can't find a specific pattern, return null to use fallback
         return null;
     }
+
+
 
     // Register commands
     const refreshCommand = vscode.commands.registerCommand('shopifySchemaHelper.refreshTree', () => {

@@ -144,6 +144,10 @@ src/
 └── schemaBuilderPanel.ts  # Visual builder (disabled)
 ```
 
+## ⚙️ **Configuration**
+
+Currently, there are no configuration options available. The extension works out of the box with sensible defaults.
+
 ## 📚 **Resources**
 
 - [Shopify Theme Blocks Documentation](https://shopify.dev/docs/storefronts/themes/architecture/blocks)

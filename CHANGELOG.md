@@ -5,9 +5,16 @@ All notable changes to the Shopify Schema Helper extension will be documented in
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2024-12-XX
+## [0.2.0] - 2024-12-18
 
 ### 🎉 Major Feature Release
+
+### Removed
+- **Theme Check Integration** - Removed placeholder Theme Check functionality to keep the extension focused on schema visualization and validation
+  - Removed `shopifySchemaHelper.enableThemeCheck` configuration setting
+  - Removed unused Theme Check stub code
+  - Extension now focuses purely on JSON schema validation and visualization
+  - Users can still use the official Shopify Theme Check extension separately for Liquid linting
 
 ### Added
 - **Complete Shopify Setting Type Support** - Added support for all official Shopify setting types:
