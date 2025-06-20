@@ -140,13 +140,7 @@
     ],
     "configuration": {
       "title": "Shopify Schema Helper",
-      "properties": {
-        "shopifySchemaHelper.enableThemeCheck": {
-          "type": "boolean",
-          "default": true,
-          "description": "Enable Shopify Theme Check validation"
-        }
-      }
+      "properties": {}
     }
   },
   "scripts": {

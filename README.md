@@ -146,7 +146,7 @@ src/
 
 ## ⚙️ **Configuration**
 
-- `shopifySchemaHelper.enableThemeCheck` - Enable or disable Shopify Theme Check validation. Defaults to `true`.
+Currently, there are no configuration options available. The extension works out of the box with sensible defaults.
 
 ## 📚 **Resources**
 
