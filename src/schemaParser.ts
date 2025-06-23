@@ -14,7 +14,7 @@ export interface ShopifySchema {
     disabled_on?: DisabledOn;
     locales?: string[];
     // Extension-specific metadata
-    _fileType?: 'section' | 'block';
+    _fileType?: 'section' | 'block' | 'settings';
     _filePath?: string;
     _jsonIssues?: JsonIssue[];  // Track JSON syntax issues that were auto-fixed
 }
@@ -91,8 +91,14 @@ export class SchemaParser {
 
     public parseDocument(document: vscode.TextDocument): ParseResult {
         const text = document.getText();
+
+        // Support parsing of config/settings_schema.json which is pure JSON
+        if (document.fileName.endsWith('settings_schema.json')) {
+            return this.parseSettingsSchemaDocument(document);
+        }
+
         const schemaMatch = text.match(/\{%-?\s*schema\s*-?%\}([\s\S]*?)\{%-?\s*endschema\s*-?%\}/i);
-        
+
         if (!schemaMatch) {
             return {
                 schema: null,
@@ -171,6 +177,70 @@ export class SchemaParser {
                 originalError: finalError
             };
         }
+    }
+
+    /**
+     * Parse arbitrary JSON content with recovery, returning raw data
+     */
+    private parseAnyWithRecovery(content: string): { data: any | null; issues: JsonIssue[]; originalError: string | null } {
+        const issues: JsonIssue[] = [];
+        let workingContent = content;
+        let originalError: string | null = null;
+
+        try {
+            const data = JSON.parse(workingContent);
+            return { data, issues: [], originalError: null };
+        } catch (error) {
+            originalError = error instanceof Error ? error.message : 'Unknown JSON error';
+        }
+
+        workingContent = this.fixTrailingCommas(workingContent, issues);
+        workingContent = this.fixMissingCommas(workingContent, issues);
+        workingContent = this.fixUnescapedQuotes(workingContent, issues);
+
+        try {
+            const data = JSON.parse(workingContent);
+            return { data, issues, originalError };
+        } catch (error) {
+            const finalError = error instanceof Error ? error.message : 'Unknown JSON error';
+            const errorLine = this.extractLineFromError(finalError, workingContent);
+            issues.push({
+                type: 'other',
+                line: errorLine,
+                column: 0,
+                message: finalError,
+                suggestion: 'Check the JSON syntax. Common issues include missing quotes, brackets, or commas.',
+                fixed: false
+            });
+
+            return { data: null, issues, originalError: finalError };
+        }
+    }
+
+    private parseSettingsSchemaDocument(document: vscode.TextDocument): ParseResult {
+        const text = document.getText();
+        const result = this.parseAnyWithRecovery(text);
+
+        if (Array.isArray(result.data)) {
+            const blocks: Block[] = result.data.filter((g: any) => g && g.settings).map((g: any) => ({
+                type: g.name || 'group',
+                name: g.name || 'Group',
+                settings: g.settings || []
+            }));
+
+            const schema: ShopifySchema = {
+                name: 'Theme Settings',
+                blocks
+            };
+
+            schema._filePath = document.fileName;
+            schema._fileType = 'settings';
+            schema._jsonIssues = result.issues;
+
+            return { schema: this.validateAndCleanSchema(schema), issues: result.issues, originalError: result.originalError };
+        }
+
+        return { schema: null, issues: result.issues, originalError: result.originalError };
     }
 
     /**
@@ -384,10 +454,14 @@ export class SchemaParser {
         return iconMap[type] || '$(symbol-misc)';
     }
 
-    private detectFileType(filePath: string): 'section' | 'block' {
+    private detectFileType(filePath: string): 'section' | 'block' | 'settings' {
         // Normalize path separators
         const normalizedPath = filePath.replace(/\\/g, '/');
-        
+
+        if (normalizedPath.endsWith('settings_schema.json')) {
+            return 'settings';
+        }
+
         if (normalizedPath.includes('/blocks/')) {
             return 'block';
         } else if (normalizedPath.includes('/sections/')) {
