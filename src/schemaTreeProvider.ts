@@ -421,7 +421,12 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
         const rawSectionName = schema.name || 'Unnamed Section';
         const sectionName = this.translationManager.translate(rawSectionName, true);
         const sectionDescription = this.getSectionDescription(schema, stats);
-        const fileTypeIcon = schema._fileType === 'block' ? '$(symbol-module)' : '$(symbol-class)';
+        let fileTypeIcon = '$(symbol-class)';
+        if (schema._fileType === 'block') {
+            fileTypeIcon = '$(symbol-module)';
+        } else if (schema._fileType === 'settings') {
+            fileTypeIcon = '$(settings-gear)';
+        }
         
         items.push(new SchemaTreeItem(
             sectionName,
@@ -441,7 +446,13 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
         
         // Add file type as first item
         if (schema._fileType) {
-            parts.push(`${schema._fileType === 'block' ? 'Theme Block' : 'Section'}`);
+            if (schema._fileType === 'block') {
+                parts.push('Theme Block');
+            } else if (schema._fileType === 'settings') {
+                parts.push('Theme Settings');
+            } else {
+                parts.push('Section');
+            }
         }
         
         if (stats.settingsCount > 0) {
@@ -449,7 +460,8 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
         }
         
         if (stats.blocksCount > 0) {
-            parts.push(`${stats.blocksCount} blocks`);
+            const label = schema._fileType === 'settings' ? 'groups' : 'blocks';
+            parts.push(`${stats.blocksCount} ${label}`);
         }
         
         if (stats.presetsCount > 0) {
@@ -571,11 +583,19 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
 
         // File type information
         if (schema._fileType) {
-            const fileTypeLabel = schema._fileType === 'block' ? 'Theme Block' : 'Section';
-            const fileTypeDescription = schema._fileType === 'block' 
-                ? 'Reusable block component stored in /blocks folder'
-                : 'Section component stored in /sections folder';
-            const fileTypeIcon = schema._fileType === 'block' ? '$(symbol-module)' : '$(file-text)';
+            let fileTypeLabel = 'Section';
+            let fileTypeDescription = 'Section component stored in /sections folder';
+            let fileTypeIcon = '$(file-text)';
+
+            if (schema._fileType === 'block') {
+                fileTypeLabel = 'Theme Block';
+                fileTypeDescription = 'Reusable block component stored in /blocks folder';
+                fileTypeIcon = '$(symbol-module)';
+            } else if (schema._fileType === 'settings') {
+                fileTypeLabel = 'Theme Settings';
+                fileTypeDescription = 'Global theme settings from config/settings_schema.json';
+                fileTypeIcon = '$(settings-gear)';
+            }
             
             items.push(new SchemaTreeItem(
                 `Type: ${fileTypeLabel}`,
@@ -603,12 +623,18 @@ export class SchemaTreeDataProvider implements vscode.TreeDataProvider<SchemaTre
 
         // Blocks (only for sections, theme blocks don't typically contain other blocks)
         if (schema.blocks && schema.blocks.length > 0) {
-            const blocksDescription = schema._fileType === 'block' 
-                ? 'Nested blocks within this theme block'
-                : 'Available blocks for this section';
-            
+            let blocksDescription = 'Available blocks for this section';
+            let label = 'Blocks';
+
+            if (schema._fileType === 'block') {
+                blocksDescription = 'Nested blocks within this theme block';
+            } else if (schema._fileType === 'settings') {
+                blocksDescription = 'Setting groups defined for this theme';
+                label = 'Groups';
+            }
+
             items.push(new SchemaTreeItem(
-                `Blocks (${stats.blocksCount})`,
+                `${label} (${stats.blocksCount})`,
                 blocksDescription,
                 vscode.TreeItemCollapsibleState.Expanded,
                 'blocks',

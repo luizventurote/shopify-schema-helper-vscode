@@ -34,7 +34,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Function to validate and show diagnostics for schema
     function validateSchemaAndShowDiagnostics(document: vscode.TextDocument) {
-        if (!document.fileName.endsWith('.liquid')) {
+        const supported = document.fileName.endsWith('.liquid') || document.fileName.endsWith('settings_schema.json');
+        if (!supported) {
             return;
         }
 
@@ -237,8 +238,9 @@ export function activate(context: vscode.ExtensionContext) {
     const validateSchemaCommand = vscode.commands.registerCommand('shopifySchemaHelper.validateSchema', () => {
         const currentEditor = vscode.window.activeTextEditor;
         
-        if (!currentEditor || !currentEditor.document.fileName.endsWith('.liquid')) {
-            vscode.window.showWarningMessage('Please open a .liquid file to validate schema');
+        const validFile = currentEditor && (currentEditor.document.fileName.endsWith('.liquid') || currentEditor.document.fileName.endsWith('settings_schema.json'));
+        if (!validFile) {
+            vscode.window.showWarningMessage('Please open a schema file to validate');
             return;
         }
 
@@ -256,8 +258,9 @@ export function activate(context: vscode.ExtensionContext) {
     const exportSchemaCommand = vscode.commands.registerCommand('shopifySchemaHelper.exportSchema', async () => {
         const currentEditor = vscode.window.activeTextEditor;
         
-        if (!currentEditor || !currentEditor.document.fileName.endsWith('.liquid')) {
-            vscode.window.showWarningMessage('Please open a .liquid file to export schema');
+        const validFile = currentEditor && (currentEditor.document.fileName.endsWith('.liquid') || currentEditor.document.fileName.endsWith('settings_schema.json'));
+        if (!validFile) {
+            vscode.window.showWarningMessage('Please open a schema file to export');
             return;
         }
 
@@ -292,7 +295,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Listen for active editor changes
     const activeEditorListener = vscode.window.onDidChangeActiveTextEditor((editor) => {
-        if (editor && editor.document.fileName.endsWith('.liquid')) {
+        if (editor && (editor.document.fileName.endsWith('.liquid') || editor.document.fileName.endsWith('settings_schema.json'))) {
             schemaTreeProvider.updateSchema(editor.document);
             validateSchemaAndShowDiagnostics(editor.document);
         }
@@ -301,7 +304,8 @@ export function activate(context: vscode.ExtensionContext) {
     // Listen for document changes (with debounce)
     let changeTimeout: NodeJS.Timeout;
     const documentChangeListener = vscode.workspace.onDidChangeTextDocument((event) => {
-        if (event.document.fileName.endsWith('.liquid')) {
+        const supported = event.document.fileName.endsWith('.liquid') || event.document.fileName.endsWith('settings_schema.json');
+        if (supported) {
             // Debounce the updates to avoid too many rapid updates
             clearTimeout(changeTimeout);
             changeTimeout = setTimeout(() => {
@@ -313,7 +317,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Listen for document saves
     const documentSaveListener = vscode.workspace.onDidSaveTextDocument((document) => {
-        if (document.fileName.endsWith('.liquid')) {
+        const supported = document.fileName.endsWith('.liquid') || document.fileName.endsWith('settings_schema.json');
+        if (supported) {
             schemaTreeProvider.updateSchema(document);
             validateSchemaAndShowDiagnostics(document);
         }
@@ -337,8 +342,10 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage('Shopify translations loaded from locales file.');
     });
 
-    // Initialize with current active editor if it's a liquid file
-    if (vscode.window.activeTextEditor?.document.fileName.endsWith('.liquid')) {
+    // Initialize with current active editor if it's a supported schema file
+    if (vscode.window.activeTextEditor &&
+        (vscode.window.activeTextEditor.document.fileName.endsWith('.liquid') ||
+            vscode.window.activeTextEditor.document.fileName.endsWith('settings_schema.json'))) {
         schemaTreeProvider.updateSchema(vscode.window.activeTextEditor.document);
         validateSchemaAndShowDiagnostics(vscode.window.activeTextEditor.document);
     }

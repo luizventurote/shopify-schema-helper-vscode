@@ -10,7 +10,7 @@ A powerful VS Code extension that makes it easy to visualize and validate Shopif
 - Tree view of your schema structure
 - Instant parsing of Shopify section and block schemas
 - Visual representation of settings, blocks, and presets
-- Support for both section and theme block schemas
+- Support for section, theme block, and global settings schemas (`config/settings_schema.json`)
 - Recognizes schema tags with whitespace control (`{%- schema -%}`)
 
 ### ✅ **Advanced Schema Validation**
